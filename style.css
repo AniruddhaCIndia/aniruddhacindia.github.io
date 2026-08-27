@@ -306,9 +306,9 @@ nav.site-nav ul {
 }
 
 /* ==================================================
-   Lensing tool frame
+   Simulation frames (lensing + BBH merger)
 ================================================== */
-.lens-frame {
+.sim-frame {
   border: 2px solid var(--ink);
   border-radius: 16px;
   background: #FAF3E8;
@@ -316,17 +316,50 @@ nav.site-nav ul {
   overflow: hidden;
 }
 
-.lens-scroll {
+.sim-scroll {
   overflow-x: auto;
   line-height: 0;
 }
 
-.lens-caption {
+.sim-caption {
   font-size: 15px;
   font-style: italic;
   color: var(--ink-soft);
   margin-top: 12px;
 }
+
+/* ==================================================
+   Pill button (randomize / play controls)
+================================================== */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  margin: 4px 0 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.btn-pill:hover {
+  background: var(--indigo);
+  color: var(--cream);
+  border-color: var(--indigo);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(43, 46, 119, 0.25);
+}
+
+.btn-pill:active {
+  transform: translateY(0);
+}
+
 
 /* ==================================================
    Footer

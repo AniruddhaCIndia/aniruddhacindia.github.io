@@ -1,200 +1,230 @@
-let bins = 128;
-let extent = 5;
-let x = [];
-let y = [];
+// ============================================================
+// Gravitational Lensing — instance-mode p5 sketch
+// Compound SIE lens system with convergence (potential) shading
+// ============================================================
 
-let sourceX = 0.0;
-let sourceY = 0.0;
-let dragging = false;
+function lensSketch(p) {
+  const bins = 128;
+  const extent = 5;
+  const xs = [];
+  const ys = [];
 
-let canvas;
+  let sourceX = 0.0;
+  let sourceY = 0.0;
+  let dragging = false;
 
-// SIE lens parameters
-let einsteinRadius = 1.0;
-let q = 0.4;
-let phi = 0;
+  // Color palette — matches the site's cream / ink / indigo / gold theme
+  const BG_COLOR = [250, 243, 232];       // cream
+  const BLOB_COLOR = [43, 46, 119];       // indigo — light
+  const LENS_COLOR = [176, 141, 87];      // gold — mass
+  const DIVIDER_COLOR = [26, 23, 18, 50]; // faint ink
 
-// Color palette — matches the site's cream / ink / indigo theme
-const BG_COLOR = [250, 243, 232];      // cream
-const BLOB_COLOR = [43, 46, 119];      // indigo
-const DIVIDER_COLOR = [26, 23, 18, 50]; // faint ink
+  // Default: a single centered SIE lens (matches the original demo)
+  let lenses = [{ x0: 0, y0: 0, b: 1.0, q: 0.4, phi: 0 }];
+  let kappaGrid = null;
 
-function computeCanvasSize() {
-  const containerEl = document.getElementById("lens-container");
-  const available = containerEl ? containerEl.offsetWidth : 800;
-  const w = Math.max(280, Math.min(800, available));
-  const h = w / 2;
-  return { w, h };
-}
-
-function setup() {
-  const size = computeCanvasSize();
-  canvas = createCanvas(size.w, size.h);
-  canvas.parent("lens-container");
-
-  for (let i = 0; i < bins; i++) {
-    x[i] = map(i, 0, bins - 1, -extent, extent);
-    y[i] = map(i, 0, bins - 1, -extent, extent);
+  function computeCanvasSize() {
+    const el = document.getElementById("lens-container");
+    const available = el ? el.offsetWidth : 800;
+    const w = Math.max(280, Math.min(800, available));
+    return { w, h: w / 2 };
   }
-  pixelDensity(1);
-  noStroke();
-}
 
-function windowResized() {
-  const size = computeCanvasSize();
-  resizeCanvas(size.w, size.h);
-}
-
-function draw() {
-  background(...BG_COLOR);
-
-  let I_source = computeSource();
-  let I_lensed = computeLensed(I_source);
-
-  drawField(I_source, 0);
-  drawField(I_lensed, width / 2);
-
-  // Faint divider between the two panels
-  stroke(...DIVIDER_COLOR);
-  strokeWeight(1);
-  line(width / 2, 0, width / 2, height);
-  noStroke();
-}
-
-// ===== SOURCE =====
-function gaussian(xv, yv, x0, y0, sigma) {
-  return Math.exp(-((xv - x0) ** 2 + (yv - y0) ** 2) / (2 * sigma * sigma));
-}
-
-function computeSource() {
-  let I = [];
-  for (let i = 0; i < bins; i++) {
-    I[i] = [];
-    for (let j = 0; j < bins; j++) {
-      I[i][j] = gaussian(x[j], y[i], sourceX, sourceY, 0.15);
+  // ===== SIE deflection & convergence for a single lens component =====
+  function singleDeflection(xv, yv, b, q, phiDeg) {
+    const phiRad = (phiDeg * Math.PI) / 180;
+    const xp = xv * Math.cos(phiRad) + yv * Math.sin(phiRad);
+    const yp = -xv * Math.sin(phiRad) + yv * Math.cos(phiRad);
+    const qSafe = Math.min(Math.max(q, 0.05), 0.999);
+    let psi = Math.sqrt(qSafe * qSafe * xp * xp + yp * yp);
+    if (psi < 1e-6) psi = 1e-6;
+    const eps = Math.sqrt(1 - qSafe * qSafe);
+    let axp, ayp;
+    if (eps < 1e-4) {
+      axp = (b * xp) / psi;
+      ayp = (b * yp) / psi;
+    } else {
+      axp = (b / eps) * Math.atan((eps * xp) / psi);
+      ayp = (b / eps) * Math.atanh((eps * yp) / psi);
     }
-  }
-  return I;
-}
-
-// ===== SIE LENS =====
-function lensDeflection(xv, yv) {
-  let phiRad = phi * Math.PI / 180;
-
-  // Rotate into lens frame
-  let xp = xv * Math.cos(phiRad) + yv * Math.sin(phiRad);
-  let yp = -xv * Math.sin(phiRad) + yv * Math.cos(phiRad);
-
-  // Axis ratio safeguard
-  let q_safe = constrain(q, 0.05, 0.999);
-
-  // Elliptical radius
-  let psi = Math.sqrt(q_safe * q_safe * xp * xp + yp * yp);
-  if (psi < 1e-6) psi = 1e-6;
-
-  let eps = Math.sqrt(1 - q_safe * q_safe);
-
-  let axp, ayp;
-
-  if (eps < 1e-4) {
-    // Circular limit (SIS)
-    axp = einsteinRadius * xp / psi;
-    ayp = einsteinRadius * yp / psi;
-  } else {
-    axp = (einsteinRadius / eps) *
-          Math.atan((eps * xp) / psi);
-
-    ayp = (einsteinRadius / eps) *
-          Math.atanh((eps * yp) / psi);
+    return [
+      axp * Math.cos(phiRad) - ayp * Math.sin(phiRad),
+      axp * Math.sin(phiRad) + ayp * Math.cos(phiRad),
+    ];
   }
 
-  // Rotate back
-  let ax = axp * Math.cos(phiRad) - ayp * Math.sin(phiRad);
-  let ay = axp * Math.sin(phiRad) + ayp * Math.cos(phiRad);
+  function singleKappa(xv, yv, b, q, phiDeg) {
+    const phiRad = (phiDeg * Math.PI) / 180;
+    const xp = xv * Math.cos(phiRad) + yv * Math.sin(phiRad);
+    const yp = -xv * Math.sin(phiRad) + yv * Math.cos(phiRad);
+    const qSafe = Math.min(Math.max(q, 0.05), 0.999);
+    let psi = Math.sqrt(qSafe * qSafe * xp * xp + yp * yp);
+    if (psi < 5e-3) psi = 5e-3; // floor so the cusp doesn't blow out the shading
+    return b / (2 * psi);
+  }
 
-  return [ax, ay];
-}
+  // Superposition: deflections and convergence add linearly across lens components
+  function totalDeflection(xv, yv) {
+    let ax = 0, ay = 0;
+    for (const L of lenses) {
+      const [dax, day] = singleDeflection(xv - L.x0, yv - L.y0, L.b, L.q, L.phi);
+      ax += dax; ay += day;
+    }
+    return [ax, ay];
+  }
 
-// ===== LENSED IMAGE (bilinear interpolation) =====
-function computeLensed(I_source) {
-  let I = [];
-  for (let i = 0; i < bins; i++) {
-    I[i] = [];
-    for (let j = 0; j < bins; j++) {
-      let xv = x[j];
-      let yv = y[i];
+  function totalKappa(xv, yv) {
+    let k = 0;
+    for (const L of lenses) k += singleKappa(xv - L.x0, yv - L.y0, L.b, L.q, L.phi);
+    return k;
+  }
 
-      let [ax, ay] = lensDeflection(xv, yv);
-
-      let bx = xv - ax;
-      let by = yv - ay;
-
-      let fx = map(bx, -extent, extent, 0, bins - 1);
-      let fy = map(by, -extent, extent, 0, bins - 1);
-
-      let ix = Math.floor(fx);
-      let iy = Math.floor(fy);
-      let dx = fx - ix;
-      let dy = fy - iy;
-
-      if (ix >= 0 && ix < bins - 1 && iy >= 0 && iy < bins - 1) {
-        let val =
-          (1 - dx) * (1 - dy) * I_source[iy][ix] +
-          dx * (1 - dy) * I_source[iy][ix + 1] +
-          (1 - dx) * dy * I_source[iy + 1][ix] +
-          dx * dy * I_source[iy + 1][ix + 1];
-
-        I[i][j] = val;
-      } else {
-        I[i][j] = 0;
+  function recomputeKappaGrid() {
+    kappaGrid = [];
+    for (let i = 0; i < bins; i++) {
+      kappaGrid[i] = [];
+      for (let j = 0; j < bins; j++) {
+        kappaGrid[i][j] = totalKappa(xs[j], ys[i]);
       }
     }
   }
-  return I;
-}
 
-// ===== DRAW FIELD =====
-function drawField(I, offsetX) {
-  let w = width / 2;
-  let h = height;
+  function randomizeLenses() {
+    const count = Math.floor(p.random(2, 8)); // 2–7 sub-lenses
+    const newLenses = [];
+    for (let i = 0; i < count; i++) {
+      const angle = p.random(0, Math.PI * 2);
+      const dist = p.random(0, 1.4); // keeps the cluster compact
+      newLenses.push({
+        x0: dist * Math.cos(angle),
+        y0: dist * Math.sin(angle),
+        b: p.random(0.25, 0.55),
+        q: p.random(0.3, 0.9),
+        phi: p.random(0, 180),
+      });
+    }
+    lenses = newLenses;
+    recomputeKappaGrid();
+    sourceX = 0;
+    sourceY = 0;
+  }
 
-  // 🔥 Force exact pixel-to-grid mapping
-  let dx = w / bins;
-  let dy = h / bins;
+  // ===== Source =====
+  function gaussian(xv, yv, x0, y0, sigma) {
+    return Math.exp(-((xv - x0) ** 2 + (yv - y0) ** 2) / (2 * sigma * sigma));
+  }
 
-  for (let i = 0; i < bins; i++) {
-    for (let j = 0; j < bins; j++) {
+  function computeSource() {
+    const I = [];
+    for (let i = 0; i < bins; i++) {
+      I[i] = [];
+      for (let j = 0; j < bins; j++) I[i][j] = gaussian(xs[j], ys[i], sourceX, sourceY, 0.15);
+    }
+    return I;
+  }
 
-      let val = I[i][j];
-      let alpha = map(val, 0, 1, 0, 255);
-      fill(BLOB_COLOR[0], BLOB_COLOR[1], BLOB_COLOR[2], alpha);
+  function computeLensed(Isrc) {
+    const I = [];
+    for (let i = 0; i < bins; i++) {
+      I[i] = [];
+      for (let j = 0; j < bins; j++) {
+        const [ax, ay] = totalDeflection(xs[j], ys[i]);
+        const bx = xs[j] - ax;
+        const by = ys[i] - ay;
+        const fx = p.map(bx, -extent, extent, 0, bins - 1);
+        const fy = p.map(by, -extent, extent, 0, bins - 1);
+        const ix = Math.floor(fx), iy = Math.floor(fy);
+        const dx = fx - ix, dy = fy - iy;
+        if (ix >= 0 && ix < bins - 1 && iy >= 0 && iy < bins - 1) {
+          I[i][j] =
+            (1 - dx) * (1 - dy) * Isrc[iy][ix] +
+            dx * (1 - dy) * Isrc[iy][ix + 1] +
+            (1 - dx) * dy * Isrc[iy + 1][ix] +
+            dx * dy * Isrc[iy + 1][ix + 1];
+        } else {
+          I[i][j] = 0;
+        }
+      }
+    }
+    return I;
+  }
 
-      // 🔥 Uniform tiling (no distortion)
-      let px = offsetX + j * dx;
-      let py = (bins - 1 - i) * dy; // single clean Y flip
-
-      rect(px, py, dx, dy);
+  function drawField(I, offsetX, color) {
+    const w = p.width / 2, h = p.height;
+    const dx = w / bins, dy = h / bins;
+    for (let i = 0; i < bins; i++) {
+      for (let j = 0; j < bins; j++) {
+        const alpha = p.map(I[i][j], 0, 1, 0, 255);
+        p.fill(color[0], color[1], color[2], alpha);
+        p.rect(offsetX + j * dx, (bins - 1 - i) * dy, dx, dy);
+      }
     }
   }
-}
-// ===== DRAGGING =====
-function mousePressed() {
-  if (mouseX < width / 2) dragging = true;
-}
 
-function mouseReleased() {
-  dragging = false;
-}
-
-function mouseDragged() {
-  if (dragging) {
-    let w = width / 2;
-    let h = height;
-
-    sourceX = map(mouseX, 0, w, -extent, extent);
-    sourceY = map(mouseY, 0, h, extent, -extent);
-
-    sourceX = constrain(sourceX, -extent, extent);
-    sourceY = constrain(sourceY, -extent, extent);
+  // Faint, semi-transparent overlay showing where the lens mass sits
+  function drawKappaOverlay(offsetX) {
+    const w = p.width / 2, h = p.height;
+    const dx = w / bins, dy = h / bins;
+    const kappaCap = 1.2;
+    const maxAlpha = 80; // kept deliberately faint
+    for (let i = 0; i < bins; i++) {
+      for (let j = 0; j < bins; j++) {
+        const k = Math.min(kappaGrid[i][j], kappaCap);
+        const alpha = p.map(k, 0, kappaCap, 0, maxAlpha);
+        if (alpha < 2) continue; // skip near-invisible cells, cheap perf win
+        p.fill(LENS_COLOR[0], LENS_COLOR[1], LENS_COLOR[2], alpha);
+        p.rect(offsetX + j * dx, (bins - 1 - i) * dy, dx, dy);
+      }
+    }
   }
+
+  p.setup = function () {
+    const size = computeCanvasSize();
+    p.createCanvas(size.w, size.h).parent("lens-container");
+    for (let i = 0; i < bins; i++) {
+      xs[i] = p.map(i, 0, bins - 1, -extent, extent);
+      ys[i] = p.map(i, 0, bins - 1, -extent, extent);
+    }
+    p.pixelDensity(1);
+    p.noStroke();
+    recomputeKappaGrid();
+
+    const btn = document.getElementById("lens-randomize-btn");
+    if (btn) btn.addEventListener("click", randomizeLenses);
+  };
+
+  p.windowResized = function () {
+    const size = computeCanvasSize();
+    p.resizeCanvas(size.w, size.h);
+  };
+
+  p.draw = function () {
+    p.background(...BG_COLOR);
+    const Isrc = computeSource();
+    const Ilensed = computeLensed(Isrc);
+    drawField(Isrc, 0, BLOB_COLOR);
+    drawField(Ilensed, p.width / 2, BLOB_COLOR);
+    drawKappaOverlay(p.width / 2);
+
+    p.stroke(...DIVIDER_COLOR);
+    p.strokeWeight(1);
+    p.line(p.width / 2, 0, p.width / 2, p.height);
+    p.noStroke();
+  };
+
+  p.mousePressed = function () {
+    if (p.mouseX < p.width / 2) dragging = true;
+  };
+
+  p.mouseReleased = function () {
+    dragging = false;
+  };
+
+  p.mouseDragged = function () {
+    if (!dragging) return;
+    sourceX = p.constrain(p.map(p.mouseX, 0, p.width / 2, -extent, extent), -extent, extent);
+    sourceY = p.constrain(p.map(p.mouseY, 0, p.height, extent, -extent), -extent, extent);
+  };
 }
+
+new p5(lensSketch);
