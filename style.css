@@ -1,123 +1,232 @@
-/* ---------------------------------------------
+/* ==================================================
+   Design tokens
+================================================== */
+:root {
+  --cream: #FAF3E8;
+  --cream-deep: #F2E9D8;
+  --ink: #1A1712;
+  --ink-soft: #4A443C;
+  --indigo: #2B2E77;
+  --gold: #B08D57;
+  --rule: #DDD2B8;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+/* ==================================================
    Base
---------------------------------------------- */
-* {
-  box-sizing: border-box;
+================================================== */
+* { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background-color: #FAF6EC; /* cream */
-  color: #000000;
+  background-color: var(--cream);
+  background-image: radial-gradient(circle at 15% 8%, var(--cream-deep) 0%, transparent 45%);
+  color: var(--ink);
   font-family: "Times New Roman", Times, serif;
-  line-height: 1.7;
+  line-height: 1.75;
   font-size: 18px;
 }
 
 a {
-  color: #000000;
-  text-decoration: underline;
+  color: var(--ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--indigo), var(--indigo));
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 1px;
+  transition: background-size 0.35s ease, color 0.35s ease;
 }
 
 a:hover,
 a:focus {
-  color: #444444;
+  color: var(--indigo);
+  background-size: 100% 1px;
 }
 
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #000000;
+  outline: 2px solid var(--indigo);
   outline-offset: 3px;
 }
 
-/* ---------------------------------------------
+/* ==================================================
    Layout
---------------------------------------------- */
+================================================== */
 .page-wrap {
   max-width: 700px;
   margin: 0 auto;
-  padding: 0 24px 80px;
+  padding: 0 24px 100px;
 }
 
-/* ---------------------------------------------
-   Nav
---------------------------------------------- */
+/* ==================================================
+   Header / Nav
+================================================== */
 header.site-header {
   max-width: 700px;
   margin: 0 auto;
-  padding: 48px 24px 24px;
-  border-bottom: 1px solid #000000;
-  margin-bottom: 48px;
+  padding: 56px 24px 28px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 64px;
 }
 
 .site-title {
-  font-size: 28px;
-  margin: 0 0 16px;
+  font-size: 26px;
+  margin: 0 0 20px;
   font-weight: normal;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 nav.site-nav ul {
   list-style: none;
   display: flex;
-  gap: 28px;
+  gap: 32px;
   margin: 0;
   padding: 0;
 }
 
 nav.site-nav a {
-  text-decoration: none;
-  font-size: 16px;
-  letter-spacing: 0.5px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background-image: linear-gradient(var(--gold), var(--gold));
+  background-size: 0% 1px;
+}
+
+nav.site-nav a:hover,
+nav.site-nav a:focus {
+  color: var(--ink);
+  background-size: 100% 1px;
 }
 
 nav.site-nav a[aria-current="page"] {
-  text-decoration: underline;
   font-style: italic;
+  background-size: 100% 1px;
 }
 
-/* ---------------------------------------------
+/* ==================================================
+   Hero + signature wave
+================================================== */
+.hero {
+  margin-bottom: 8px;
+}
+
+.wave-signature {
+  width: 100%;
+  max-width: 360px;
+  height: 48px;
+  margin: 4px 0 40px;
+  display: block;
+}
+
+.wave-signature path {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: draw-wave 2.2s ease forwards 0.3s,
+             pulse-wave 4.5s ease-in-out infinite 2.6s;
+}
+
+@keyframes draw-wave {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pulse-wave {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* ==================================================
    Typography
---------------------------------------------- */
+================================================== */
 h1 {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: normal;
-  margin: 0 0 24px;
+  letter-spacing: 0.3px;
+  margin: 0 0 22px;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 23px;
   font-weight: normal;
-  margin: 40px 0 16px;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 6px;
+  letter-spacing: 0.3px;
+  margin: 48px 0 18px;
+  position: relative;
+  padding-bottom: 10px;
 }
 
-p {
-  margin: 0 0 18px;
+h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
 }
+
+p { margin: 0 0 18px; color: var(--ink-soft); }
 
 .affiliation {
   font-style: italic;
-  margin: 0 0 32px;
+  margin: 0 0 36px;
   font-size: 18px;
+  color: var(--ink);
 }
 
-/* ---------------------------------------------
+/* ==================================================
+   Scroll reveal
+================================================== */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==================================================
    Lists
---------------------------------------------- */
+================================================== */
 ul.plain-list {
   padding-left: 22px;
   margin: 0 0 18px;
 }
 
 ul.plain-list li {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
 }
 
-/* ---------------------------------------------
+ul.plain-list li::marker {
+  color: var(--gold);
+}
+
+/* ==================================================
    Links page
---------------------------------------------- */
+================================================== */
 ul.links-list {
   list-style: none;
   padding: 0;
@@ -125,43 +234,75 @@ ul.links-list {
 }
 
 ul.links-list li {
-  padding: 14px 0;
-  border-bottom: 1px solid #cfc9b8;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+  transition: padding-left 0.3s ease;
 }
 
 ul.links-list li:first-child {
-  border-top: 1px solid #cfc9b8;
+  border-top: 1px solid var(--rule);
 }
 
-/* ---------------------------------------------
+ul.links-list li:hover {
+  padding-left: 8px;
+}
+
+ul.links-list a {
+  font-size: 19px;
+}
+
+/* ==================================================
    Tools page
---------------------------------------------- */
+================================================== */
 .tool-block {
-  margin-bottom: 48px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid #cfc9b8;
+  margin-bottom: 52px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--rule);
 }
 
-.tool-block:last-child {
-  border-bottom: none;
-}
+.tool-block:last-child { border-bottom: none; }
 
 .tool-placeholder {
-  border: 1px dashed #000000;
-  padding: 40px 20px;
+  border: 1px dashed var(--gold);
+  padding: 44px 20px;
   text-align: center;
   font-style: italic;
-  color: #555555;
+  color: var(--ink-soft);
+  background: var(--cream-deep);
+  transition: background 0.3s ease;
 }
 
-/* ---------------------------------------------
+.tool-placeholder:hover {
+  background: #EEE2C8;
+}
+
+/* ==================================================
    Footer
---------------------------------------------- */
+================================================== */
 footer.site-footer {
   max-width: 700px;
-  margin: 64px auto 0;
-  padding: 24px 24px 0;
-  border-top: 1px solid #000000;
+  margin: 72px auto 0;
+  padding: 26px 24px 0;
+  border-top: 1px solid var(--ink);
   font-size: 14px;
-  color: #444444;
+  color: var(--ink-soft);
+}
+
+/* ==================================================
+   View Transitions (cross-page)
+================================================== */
+::view-transition-old(root) {
+  animation: fade-slide-out 0.4s ease both;
+}
+
+::view-transition-new(root) {
+  animation: fade-slide-in 0.45s ease both;
+}
+
+@keyframes fade-slide-out {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes fade-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
 }
