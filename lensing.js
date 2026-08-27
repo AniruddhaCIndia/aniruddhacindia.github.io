@@ -1,13 +1,21 @@
 // ============================================================
 // Gravitational Lensing — instance-mode p5 sketch
 // Compound SIE lens system with convergence (potential) shading
+//
+// Performance note: the field is computed on a small 128x128
+// (or 64x64 on narrow screens) grid, written directly into an
+// offscreen pixel buffer, then blitted to the display canvas
+// with a single scaled image draw — far cheaper than drawing
+// thousands of individual rectangles every frame. The sketch
+// also only redraws when something actually changes (drag or
+// randomize), not on a perpetual 60fps loop.
 // ============================================================
 
 function lensSketch(p) {
-  const bins = 128;
   const extent = 5;
-  const xs = [];
-  const ys = [];
+  let bins = 128;
+  let xs = [];
+  let ys = [];
 
   let sourceX = 0.0;
   let sourceY = 0.0;
@@ -23,11 +31,18 @@ function lensSketch(p) {
   let lenses = [{ x0: 0, y0: 0, b: 1.0, q: 0.4, phi: 0 }];
   let kappaGrid = null;
 
+  // Offscreen buffers (small, fixed resolution regardless of display size)
+  let sourceBuf, lensedBuf, kappaImg;
+
   function computeCanvasSize() {
     const el = document.getElementById("lens-container");
     const available = el ? el.offsetWidth : 800;
     const w = Math.max(280, Math.min(800, available));
     return { w, h: w / 2 };
+  }
+
+  function binsForWidth(w) {
+    return w < 500 ? 64 : 128;
   }
 
   // ===== SIE deflection & convergence for a single lens component =====
@@ -59,11 +74,10 @@ function lensSketch(p) {
     const yp = -xv * Math.sin(phiRad) + yv * Math.cos(phiRad);
     const qSafe = Math.min(Math.max(q, 0.05), 0.999);
     let psi = Math.sqrt(qSafe * qSafe * xp * xp + yp * yp);
-    if (psi < 5e-3) psi = 5e-3; // floor so the cusp doesn't blow out the shading
+    if (psi < 5e-3) psi = 5e-3;
     return b / (2 * psi);
   }
 
-  // Superposition: deflections and convergence add linearly across lens components
   function totalDeflection(xv, yv) {
     let ax = 0, ay = 0;
     for (const L of lenses) {
@@ -79,14 +93,47 @@ function lensSketch(p) {
     return k;
   }
 
+  function buildGrids() {
+    xs = []; ys = [];
+    for (let i = 0; i < bins; i++) {
+      xs[i] = p.map(i, 0, bins - 1, -extent, extent);
+      ys[i] = p.map(i, 0, bins - 1, -extent, extent);
+    }
+  }
+
   function recomputeKappaGrid() {
     kappaGrid = [];
     for (let i = 0; i < bins; i++) {
       kappaGrid[i] = [];
+      for (let j = 0; j < bins; j++) kappaGrid[i][j] = totalKappa(xs[j], ys[i]);
+    }
+    buildKappaImage();
+  }
+
+  function makeBuffers() {
+    sourceBuf = p.createGraphics(bins, bins);
+    lensedBuf = p.createGraphics(bins, bins);
+    kappaImg = p.createGraphics(bins, bins);
+    [sourceBuf, lensedBuf, kappaImg].forEach((g) => g.pixelDensity(1));
+  }
+
+  function buildKappaImage() {
+    const kappaCap = 1.2;
+    const maxAlpha = 80; // kept deliberately faint
+    kappaImg.loadPixels();
+    for (let i = 0; i < bins; i++) {
+      const row = bins - 1 - i;
       for (let j = 0; j < bins; j++) {
-        kappaGrid[i][j] = totalKappa(xs[j], ys[i]);
+        const idx = 4 * (row * bins + j);
+        const k = Math.min(kappaGrid[i][j], kappaCap);
+        const alpha = Math.round(p.map(k, 0, kappaCap, 0, maxAlpha));
+        kappaImg.pixels[idx] = LENS_COLOR[0];
+        kappaImg.pixels[idx + 1] = LENS_COLOR[1];
+        kappaImg.pixels[idx + 2] = LENS_COLOR[2];
+        kappaImg.pixels[idx + 3] = alpha;
       }
     }
+    kappaImg.updatePixels();
   }
 
   function randomizeLenses() {
@@ -107,6 +154,7 @@ function lensSketch(p) {
     recomputeKappaGrid();
     sourceX = 0;
     sourceY = 0;
+    p.redraw();
   }
 
   // ===== Source =====
@@ -149,73 +197,84 @@ function lensSketch(p) {
     return I;
   }
 
-  function drawField(I, offsetX, color) {
-    const w = p.width / 2, h = p.height;
-    const dx = w / bins, dy = h / bins;
+  function writeFieldToBuffer(buf, I, color) {
+    buf.loadPixels();
     for (let i = 0; i < bins; i++) {
+      const row = bins - 1 - i;
       for (let j = 0; j < bins; j++) {
-        const alpha = p.map(I[i][j], 0, 1, 0, 255);
-        p.fill(color[0], color[1], color[2], alpha);
-        p.rect(offsetX + j * dx, (bins - 1 - i) * dy, dx, dy);
+        const idx = 4 * (row * bins + j);
+        buf.pixels[idx] = color[0];
+        buf.pixels[idx + 1] = color[1];
+        buf.pixels[idx + 2] = color[2];
+        buf.pixels[idx + 3] = Math.round(p.constrain(I[i][j], 0, 1) * 255);
       }
     }
+    buf.updatePixels();
   }
 
-  // Faint, semi-transparent overlay showing where the lens mass sits
-  function drawKappaOverlay(offsetX) {
-    const w = p.width / 2, h = p.height;
-    const dx = w / bins, dy = h / bins;
-    const kappaCap = 1.2;
-    const maxAlpha = 80; // kept deliberately faint
-    for (let i = 0; i < bins; i++) {
-      for (let j = 0; j < bins; j++) {
-        const k = Math.min(kappaGrid[i][j], kappaCap);
-        const alpha = p.map(k, 0, kappaCap, 0, maxAlpha);
-        if (alpha < 2) continue; // skip near-invisible cells, cheap perf win
-        p.fill(LENS_COLOR[0], LENS_COLOR[1], LENS_COLOR[2], alpha);
-        p.rect(offsetX + j * dx, (bins - 1 - i) * dy, dx, dy);
-      }
-    }
-  }
-
-  p.setup = function () {
-    const size = computeCanvasSize();
-    p.createCanvas(size.w, size.h).parent("lens-container");
-    for (let i = 0; i < bins; i++) {
-      xs[i] = p.map(i, 0, bins - 1, -extent, extent);
-      ys[i] = p.map(i, 0, bins - 1, -extent, extent);
-    }
-    p.pixelDensity(1);
-    p.noStroke();
-    recomputeKappaGrid();
-
-    const btn = document.getElementById("lens-randomize-btn");
-    if (btn) btn.addEventListener("click", randomizeLenses);
-  };
-
-  p.windowResized = function () {
-    const size = computeCanvasSize();
-    p.resizeCanvas(size.w, size.h);
-  };
-
-  p.draw = function () {
-    p.background(...BG_COLOR);
+  function renderScene() {
     const Isrc = computeSource();
     const Ilensed = computeLensed(Isrc);
-    drawField(Isrc, 0, BLOB_COLOR);
-    drawField(Ilensed, p.width / 2, BLOB_COLOR);
-    drawKappaOverlay(p.width / 2);
+    writeFieldToBuffer(sourceBuf, Isrc, BLOB_COLOR);
+    writeFieldToBuffer(lensedBuf, Ilensed, BLOB_COLOR);
+
+    p.background(...BG_COLOR);
+    p.image(sourceBuf, 0, 0, p.width / 2, p.height);
+    p.image(lensedBuf, p.width / 2, 0, p.width / 2, p.height);
+    p.image(kappaImg, p.width / 2, 0, p.width / 2, p.height);
 
     p.stroke(...DIVIDER_COLOR);
     p.strokeWeight(1);
     p.line(p.width / 2, 0, p.width / 2, p.height);
     p.noStroke();
+  }
+
+  function withinLeftPanel(x, y) {
+    return x >= 0 && x < p.width / 2 && y >= 0 && y < p.height;
+  }
+
+  function updateSourceFromCoords(x, y) {
+    sourceX = p.constrain(p.map(x, 0, p.width / 2, -extent, extent), -extent, extent);
+    sourceY = p.constrain(p.map(y, 0, p.height, extent, -extent), -extent, extent);
+  }
+
+  p.setup = function () {
+    const size = computeCanvasSize();
+    p.createCanvas(size.w, size.h).parent("lens-container");
+    bins = binsForWidth(size.w);
+    p.pixelDensity(1);
+    p.noStroke();
+    buildGrids();
+    makeBuffers();
+    recomputeKappaGrid();
+
+    const btn = document.getElementById("lens-randomize-btn");
+    if (btn) btn.addEventListener("click", randomizeLenses);
+
+    p.noLoop();
+    p.redraw();
   };
 
-  p.mousePressed = function () {
-    if (p.mouseX >= 0 && p.mouseX < p.width / 2 && p.mouseY >= 0 && p.mouseY < p.height) {
-      dragging = true;
+  p.windowResized = function () {
+    const size = computeCanvasSize();
+    p.resizeCanvas(size.w, size.h);
+    const newBins = binsForWidth(size.w);
+    if (newBins !== bins) {
+      bins = newBins;
+      buildGrids();
+      makeBuffers();
+      recomputeKappaGrid();
     }
+    p.redraw();
+  };
+
+  p.draw = function () {
+    renderScene();
+  };
+
+  // ----- Mouse (desktop) -----
+  p.mousePressed = function () {
+    if (withinLeftPanel(p.mouseX, p.mouseY)) dragging = true;
   };
 
   p.mouseReleased = function () {
@@ -224,8 +283,36 @@ function lensSketch(p) {
 
   p.mouseDragged = function () {
     if (!dragging) return;
-    sourceX = p.constrain(p.map(p.mouseX, 0, p.width / 2, -extent, extent), -extent, extent);
-    sourceY = p.constrain(p.map(p.mouseY, 0, p.height, extent, -extent), -extent, extent);
+    updateSourceFromCoords(p.mouseX, p.mouseY);
+    p.redraw();
+  };
+
+  // ----- Touch (mobile) -----
+  p.touchStarted = function () {
+    if (p.touches.length > 0) {
+      const t = p.touches[0];
+      if (withinLeftPanel(t.x, t.y)) {
+        dragging = true;
+        p.redraw();
+        return false; // block page scroll only when the touch starts on our panel
+      }
+    }
+  };
+
+  p.touchMoved = function () {
+    if (dragging && p.touches.length > 0) {
+      const t = p.touches[0];
+      updateSourceFromCoords(t.x, t.y);
+      p.redraw();
+      return false; // block page scroll while actively dragging the source
+    }
+  };
+
+  p.touchEnded = function () {
+    if (dragging) {
+      dragging = false;
+      return false;
+    }
   };
 }
 

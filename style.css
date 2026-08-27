@@ -31,10 +31,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
+  width: 100%;
   background-color: var(--cream);
   background-image: radial-gradient(circle at 15% 8%, var(--cream-deep) 0%, transparent 45%);
   color: var(--ink);
@@ -388,4 +392,33 @@ footer.site-footer {
 
 @keyframes fade-slide-in {
   from { opacity: 0; transform: translateY(8px); }
+}
+
+/* ==================================================
+   Mobile: prevent nav from overflowing viewport width
+   (overflow here is what forces mobile browsers to
+   zoom the whole page out, causing the "90% width" look)
+================================================== */
+@media (max-width: 480px) {
+  header.site-header {
+    padding: 40px 16px 20px;
+  }
+
+  .page-wrap {
+    padding: 0 16px 80px;
+  }
+
+  .site-title {
+    font-size: 21px;
+  }
+
+  nav.site-nav ul {
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  nav.site-nav a {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
 }

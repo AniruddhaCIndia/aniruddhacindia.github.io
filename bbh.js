@@ -68,6 +68,7 @@ function bbhSketch(p) {
 
     state = "inspiral";
     p.background(...BG_COLOR);
+    p.loop();
   }
 
   function drawDivider() {
@@ -114,6 +115,8 @@ function bbhSketch(p) {
 
     const btn = document.getElementById("bbh-randomize-btn");
     if (btn) btn.addEventListener("click", randomizeAndPlay);
+
+    p.noLoop();
   };
 
   p.windowResized = function () {
@@ -234,6 +237,7 @@ function bbhSketch(p) {
 
       if (ringFrame >= ringdownFrames || envelope < peakAmp * 0.01) {
         state = "done";
+        p.noLoop();
       }
     }
 
