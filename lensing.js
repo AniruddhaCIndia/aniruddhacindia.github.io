@@ -19,8 +19,17 @@ const BG_COLOR = [250, 243, 232];      // cream
 const BLOB_COLOR = [43, 46, 119];      // indigo
 const DIVIDER_COLOR = [26, 23, 18, 50]; // faint ink
 
+function computeCanvasSize() {
+  const containerEl = document.getElementById("lens-container");
+  const available = containerEl ? containerEl.offsetWidth : 800;
+  const w = Math.max(280, Math.min(800, available));
+  const h = w / 2;
+  return { w, h };
+}
+
 function setup() {
-  canvas = createCanvas(800, 400);
+  const size = computeCanvasSize();
+  canvas = createCanvas(size.w, size.h);
   canvas.parent("lens-container");
 
   for (let i = 0; i < bins; i++) {
@@ -29,6 +38,11 @@ function setup() {
   }
   pixelDensity(1);
   noStroke();
+}
+
+function windowResized() {
+  const size = computeCanvasSize();
+  resizeCanvas(size.w, size.h);
 }
 
 function draw() {
