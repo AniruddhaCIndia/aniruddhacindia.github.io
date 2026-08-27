@@ -262,20 +262,6 @@ ul.links-list a {
 
 .tool-block:last-child { border-bottom: none; }
 
-.tool-placeholder {
-  border: 1px dashed var(--gold);
-  padding: 44px 20px;
-  text-align: center;
-  font-style: italic;
-  color: var(--ink-soft);
-  background: var(--cream-deep);
-  transition: background 0.3s ease;
-}
-
-.tool-placeholder:hover {
-  background: #EEE2C8;
-}
-
 /* ==================================================
    Drop cap
 ================================================== */
@@ -372,6 +358,7 @@ nav.site-nav ul {
 }
 
 .footer-wave path {
+  stroke-dashoffset: 0;
   animation: pulse-wave 5s ease-in-out infinite;
 }
 

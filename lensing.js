@@ -213,7 +213,9 @@ function lensSketch(p) {
   };
 
   p.mousePressed = function () {
-    if (p.mouseX < p.width / 2) dragging = true;
+    if (p.mouseX >= 0 && p.mouseX < p.width / 2 && p.mouseY >= 0 && p.mouseY < p.height) {
+      dragging = true;
+    }
   };
 
   p.mouseReleased = function () {

@@ -24,6 +24,7 @@ function bbhSketch(p) {
   let waveformPoints = [];
   let rings = [];
   let totalDurationFrames = 1;
+  let waveScale = 60; // recomputed per run so the peak always fits the panel
 
   function computeCanvasSize() {
     const el = document.getElementById("bbh-container");
@@ -63,6 +64,7 @@ function bbhSketch(p) {
     rings = [];
     ampAtMerger = Math.pow(frequencyAt(1) / fStart, 2 / 3);
     peakAmp = ampAtMerger * 1.15;
+    waveScale = (p.height * 0.42) / peakAmp; // scale so the merger peak fills ~42% of panel height
 
     state = "inspiral";
     p.background(...BG_COLOR);
@@ -86,13 +88,12 @@ function bbhSketch(p) {
   function plotWaveformSample(t, h) {
     waveformPoints.push({ t, h });
     if (waveformPoints.length < 2) return;
-    const scale = p.height * 0.32;
     const a = waveformPoints[waveformPoints.length - 2];
     const b = waveformPoints[waveformPoints.length - 1];
     const x1 = p.map(a.t, 0, totalDurationFrames, p.width / 2, p.width);
-    const y1 = p.height / 2 - a.h * scale;
+    const y1 = p.height / 2 - a.h * waveScale;
     const x2 = p.map(b.t, 0, totalDurationFrames, p.width / 2, p.width);
-    const y2 = p.height / 2 - b.h * scale;
+    const y2 = p.height / 2 - b.h * waveScale;
     p.stroke(WAVE_COLOR[0], WAVE_COLOR[1], WAVE_COLOR[2], 220);
     p.strokeWeight(1.4);
     p.line(x1, y1, x2, y2);
