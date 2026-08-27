@@ -14,6 +14,11 @@ let einsteinRadius = 1.0;
 let q = 0.4;
 let phi = 0;
 
+// Color palette — matches the site's cream / ink / indigo theme
+const BG_COLOR = [250, 243, 232];      // cream
+const BLOB_COLOR = [43, 46, 119];      // indigo
+const DIVIDER_COLOR = [26, 23, 18, 50]; // faint ink
+
 function setup() {
   canvas = createCanvas(800, 400);
   canvas.parent("lens-container");
@@ -27,13 +32,19 @@ function setup() {
 }
 
 function draw() {
-  background(0);
+  background(...BG_COLOR);
 
   let I_source = computeSource();
   let I_lensed = computeLensed(I_source);
 
   drawField(I_source, 0);
   drawField(I_lensed, width / 2);
+
+  // Faint divider between the two panels
+  stroke(...DIVIDER_COLOR);
+  strokeWeight(1);
+  line(width / 2, 0, width / 2, height);
+  noStroke();
 }
 
 // ===== SOURCE =====
@@ -141,8 +152,8 @@ function drawField(I, offsetX) {
     for (let j = 0; j < bins; j++) {
 
       let val = I[i][j];
-      let c = map(val, 0, 1, 0, 255);
-      fill(c);
+      let alpha = map(val, 0, 1, 0, 255);
+      fill(BLOB_COLOR[0], BLOB_COLOR[1], BLOB_COLOR[2], alpha);
 
       // 🔥 Uniform tiling (no distortion)
       let px = offsetX + j * dx;

@@ -309,9 +309,14 @@ nav.site-nav ul {
    Lensing tool frame
 ================================================== */
 .lens-frame {
-  border: 1px solid var(--ink);
-  background: #000000;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #FAF3E8;
   margin: 8px 0 4px;
+  overflow: hidden;
+}
+
+.lens-scroll {
   overflow-x: auto;
   line-height: 0;
 }
