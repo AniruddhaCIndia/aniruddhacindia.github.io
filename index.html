@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <p class="site-title">Your Name</p>
+    <nav class="site-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="tools.html">Interactive Tools</a></li>
+        <li><a href="links.html">Links</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <h1>Your Name</h1>
+    <p class="affiliation">[Your affiliation / position — e.g. Graduate Student, Institution Name]</p>
+
+    <h2>About</h2>
+    <p>[Short bio placeholder — a few sentences about who you are and what you work on. Replace this text with your own.]</p>
+
+    <h2>Research Interests</h2>
+    <ul class="plain-list">
+      <li>[Research interest one]</li>
+      <li>[Research interest two]</li>
+      <li>[Research interest three]</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Your Name</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

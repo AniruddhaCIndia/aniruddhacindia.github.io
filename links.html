@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Links — Your Name</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <p class="site-title">Your Name</p>
+    <nav class="site-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tools.html">Interactive Tools</a></li>
+        <li><a href="links.html" aria-current="page">Links</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <h1>Links</h1>
+
+    <ul class="links-list">
+      <li><a href="#">GitHub</a></li>
+      <li><a href="#">LinkedIn</a></li>
+      <li><a href="mailto:you@example.com">Email</a></li>
+      <li><a href="#">CV / Bio-data</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Your Name</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

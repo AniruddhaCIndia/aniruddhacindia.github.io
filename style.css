@@ -1,0 +1,167 @@
+/* ---------------------------------------------
+   Base
+--------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #FAF6EC; /* cream */
+  color: #000000;
+  font-family: "Times New Roman", Times, serif;
+  line-height: 1.7;
+  font-size: 18px;
+}
+
+a {
+  color: #000000;
+  text-decoration: underline;
+}
+
+a:hover,
+a:focus {
+  color: #444444;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------
+   Layout
+--------------------------------------------- */
+.page-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ---------------------------------------------
+   Nav
+--------------------------------------------- */
+header.site-header {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 48px 24px 24px;
+  border-bottom: 1px solid #000000;
+  margin-bottom: 48px;
+}
+
+.site-title {
+  font-size: 28px;
+  margin: 0 0 16px;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+nav.site-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+}
+
+nav.site-nav a {
+  text-decoration: none;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+nav.site-nav a[aria-current="page"] {
+  text-decoration: underline;
+  font-style: italic;
+}
+
+/* ---------------------------------------------
+   Typography
+--------------------------------------------- */
+h1 {
+  font-size: 32px;
+  font-weight: normal;
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: normal;
+  margin: 40px 0 16px;
+  border-bottom: 1px solid #000000;
+  padding-bottom: 6px;
+}
+
+p {
+  margin: 0 0 18px;
+}
+
+.affiliation {
+  font-style: italic;
+  margin: 0 0 32px;
+  font-size: 18px;
+}
+
+/* ---------------------------------------------
+   Lists
+--------------------------------------------- */
+ul.plain-list {
+  padding-left: 22px;
+  margin: 0 0 18px;
+}
+
+ul.plain-list li {
+  margin-bottom: 8px;
+}
+
+/* ---------------------------------------------
+   Links page
+--------------------------------------------- */
+ul.links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.links-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid #cfc9b8;
+}
+
+ul.links-list li:first-child {
+  border-top: 1px solid #cfc9b8;
+}
+
+/* ---------------------------------------------
+   Tools page
+--------------------------------------------- */
+.tool-block {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #cfc9b8;
+}
+
+.tool-block:last-child {
+  border-bottom: none;
+}
+
+.tool-placeholder {
+  border: 1px dashed #000000;
+  padding: 40px 20px;
+  text-align: center;
+  font-style: italic;
+  color: #555555;
+}
+
+/* ---------------------------------------------
+   Footer
+--------------------------------------------- */
+footer.site-footer {
+  max-width: 700px;
+  margin: 64px auto 0;
+  padding: 24px 24px 0;
+  border-top: 1px solid #000000;
+  font-size: 14px;
+  color: #444444;
+}

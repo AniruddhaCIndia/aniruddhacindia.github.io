@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Tools — Your Name</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <p class="site-title">Your Name</p>
+    <nav class="site-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tools.html" aria-current="page">Interactive Tools</a></li>
+        <li><a href="links.html">Links</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <h1>Interactive Tools</h1>
+    <p>[Short intro placeholder — one or two sentences describing what visitors will find on this page.]</p>
+
+    <div class="tool-block">
+      <h2>[Tool One Name]</h2>
+      <p>[Placeholder description of what this tool demonstrates.]</p>
+      <div class="tool-placeholder">Tool coming soon</div>
+    </div>
+
+    <div class="tool-block">
+      <h2>[Tool Two Name]</h2>
+      <p>[Placeholder description of what this tool demonstrates.]</p>
+      <div class="tool-placeholder">Tool coming soon</div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Your Name</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
