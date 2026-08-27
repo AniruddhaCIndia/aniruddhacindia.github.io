@@ -277,8 +277,66 @@ ul.links-list a {
 }
 
 /* ==================================================
+   Drop cap
+================================================== */
+p.lead::first-letter {
+  font-size: 3.6em;
+  line-height: 0.75;
+  float: left;
+  padding-right: 10px;
+  padding-top: 6px;
+  color: var(--indigo);
+}
+
+/* ==================================================
+   Sliding nav indicator
+================================================== */
+nav.site-nav ul {
+  position: relative;
+}
+
+.nav-indicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: var(--gold);
+  left: 0;
+  width: 0;
+  transition: left 0.35s ease, width 0.35s ease;
+}
+
+/* ==================================================
+   Lensing tool frame
+================================================== */
+.lens-frame {
+  border: 1px solid var(--ink);
+  background: #000000;
+  margin: 8px 0 4px;
+  overflow-x: auto;
+  line-height: 0;
+}
+
+.lens-caption {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+
+/* ==================================================
    Footer
 ================================================== */
+.footer-wave {
+  max-width: 220px;
+  height: 28px;
+  opacity: 0.4;
+  margin: 0 0 18px;
+}
+
+.footer-wave path {
+  animation: pulse-wave 5s ease-in-out infinite;
+}
+
 footer.site-footer {
   max-width: 700px;
   margin: 72px auto 0;

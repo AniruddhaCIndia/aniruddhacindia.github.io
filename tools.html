@@ -24,22 +24,30 @@
     <p data-reveal>[Short intro placeholder — one or two sentences describing what visitors will find on this page.]</p>
 
     <div class="tool-block" data-reveal>
-      <h2>[Tool One Name]</h2>
-      <p>[Placeholder description of what this tool demonstrates.]</p>
-      <div class="tool-placeholder">Tool coming soon</div>
+      <h2>Gravitational Lensing</h2>
+      <p>A massive foreground object bends the path of light behind it, distorting the image of anything beyond it — the same way a lens in your glasses does. Click and drag inside the left panel to move the background source, and watch how it warps into the lensed image on the right.</p>
+      <div class="lens-frame">
+        <div id="lens-container"></div>
+      </div>
+      <p class="lens-caption">Left: source. Right: lensed image, distorted by a singular isothermal ellipsoid (SIE) mass profile.</p>
     </div>
 
     <div class="tool-block" data-reveal>
-      <h2>[Tool Two Name]</h2>
+      <h2>Gravitational Waves</h2>
       <p>[Placeholder description of what this tool demonstrates.]</p>
       <div class="tool-placeholder">Tool coming soon</div>
     </div>
   </main>
 
   <footer class="site-footer">
+    <svg class="wave-signature footer-wave" viewBox="0 0 360 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M0,24 C20,4 40,44 60,24 C80,4 100,44 120,24 C140,4 160,44 180,24 C200,4 220,44 240,24 C260,4 280,44 300,24 C320,4 340,44 360,24" />
+    </svg>
     <p>&copy; <span id="year"></span> Your Name</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+  <script src="lensing.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
