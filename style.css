@@ -204,7 +204,7 @@ p { margin: 0 0 18px; color: var(--ink-soft); }
    screen size. Headings, the hero, and simulation panels are exempt so
    they can use the full available width. */
 p, .affiliation, ul.plain-list, ul.links-list {
-  max-width: 62ch;
+  max-width: 70ch;
 }
 
 .sim-caption {
@@ -323,7 +323,7 @@ nav.site-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-width: 62ch;
+  max-width: 70ch;
 }
 
 .pub-list li {
@@ -359,9 +359,9 @@ nav.site-nav ul {
   border: 2px solid var(--ink);
   border-radius: 16px;
   background: #FAF3E8;
-  margin: 8px 0 4px;
+  margin: 8px auto 4px;
   overflow: hidden;
-  max-width: 100%;
+  max-width: 900px;
 }
 
 .sim-scroll {
