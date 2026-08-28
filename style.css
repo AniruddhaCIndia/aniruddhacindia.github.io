@@ -92,9 +92,9 @@ header.site-header {
 header.site-header::after {
   content: "";
   position: absolute;
-  left: 0;
+  left: 24px;
   bottom: 0;
-  width: 90px;
+  width: 130px;
   height: 1px;
   background: var(--ink);
 }
@@ -442,9 +442,9 @@ footer.site-footer {
 footer.site-footer::before {
   content: "";
   position: absolute;
-  left: 0;
+  left: 24px;
   top: 0;
-  width: 90px;
+  width: 130px;
   height: 1px;
   background: var(--ink);
 }
@@ -494,5 +494,10 @@ footer.site-footer::before {
   nav.site-nav a {
     font-size: 12px;
     letter-spacing: 0.5px;
+  }
+
+  header.site-header::after,
+  footer.site-footer::before {
+    left: 16px;
   }
 }
