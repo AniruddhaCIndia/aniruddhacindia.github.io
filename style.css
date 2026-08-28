@@ -74,7 +74,7 @@ button:focus-visible {
    Layout
 ================================================== */
 .page-wrap {
-  max-width: 700px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px 100px;
 }
@@ -83,7 +83,7 @@ button:focus-visible {
    Header / Nav
 ================================================== */
 header.site-header {
-  max-width: 700px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 56px 24px 28px;
   border-bottom: 1px solid var(--ink);
@@ -189,6 +189,18 @@ h2::after {
 }
 
 p { margin: 0 0 18px; color: var(--ink-soft); }
+
+/* Body text and lists keep a comfortable reading measure even though the
+   page itself is wide — long lines are harder to read regardless of
+   screen size. Headings, the hero, and simulation panels are exempt so
+   they can use the full available width. */
+p, .affiliation, ul.plain-list, ul.links-list {
+  max-width: 62ch;
+}
+
+.sim-caption {
+  max-width: none;
+}
 
 .affiliation {
   font-style: italic;
@@ -367,7 +379,7 @@ nav.site-nav ul {
 }
 
 footer.site-footer {
-  max-width: 700px;
+  max-width: 1100px;
   margin: 72px auto 0;
   padding: 26px 24px 0;
   border-top: 1px solid var(--ink);

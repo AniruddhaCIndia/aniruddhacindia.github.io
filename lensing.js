@@ -37,12 +37,14 @@ function lensSketch(p) {
   function computeCanvasSize() {
     const el = document.getElementById("lens-container");
     const available = el ? el.offsetWidth : 800;
-    const w = Math.max(280, Math.min(800, available));
+    const w = Math.max(280, Math.min(1200, available));
     return { w, h: w / 2 };
   }
 
   function binsForWidth(w) {
-    return w < 500 ? 64 : 128;
+    if (w < 500) return 64;
+    if (w < 900) return 128;
+    return 192;
   }
 
   // ===== SIE deflection & convergence for a single lens component =====

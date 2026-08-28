@@ -29,7 +29,7 @@ function bbhSketch(p) {
   function computeCanvasSize() {
     const el = document.getElementById("bbh-container");
     const available = el ? el.offsetWidth : 800;
-    const w = Math.max(280, Math.min(800, available));
+    const w = Math.max(280, Math.min(1200, available));
     return { w, h: w / 2 };
   }
 
@@ -194,14 +194,23 @@ function bbhSketch(p) {
       p.fill(GOLD[0], GOLD[1], GOLD[2], flashAlpha);
       p.circle(cx, cy, mergedRad * 2 + tm * 70);
 
-      orbitalPhase += 2 * Math.PI * p.lerp(frequencyAt(1), fRing, tm) * dt;
+      // Merger frequency should approach fRing/2 here, not fRing directly —
+      // this "orbital" phase accumulator gets doubled below for the GW signal
+      // (sin(2*orbitalPhase)), matching the same convention used in inspiral.
+      // Interpolating toward fRing itself would make the GW frequency here
+      // reach 2*fRing, creating a frequency mismatch right at the ringdown
+      // handoff.
+      orbitalPhase += 2 * Math.PI * p.lerp(frequencyAt(1), fRing / 2, tm) * dt;
       const h = p.lerp(ampAtMerger, peakAmp, tm) * Math.sin(2 * orbitalPhase);
       plotWaveformSample(inspiralFrames + mergerFrame, h);
 
       if (mergerFrame >= mergerFrames) {
         state = "ringdown";
         ringFrame = 0;
-        ringPhase = 0;
+        // Carry the GW phase over continuously instead of resetting to 0 —
+        // physically the phase doesn't jump at merger, only the frequency
+        // and amplitude envelope change character.
+        ringPhase = (2 * orbitalPhase) % (2 * Math.PI);
       }
     } else if (state === "ringdown") {
       ringFrame++;
