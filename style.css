@@ -83,11 +83,20 @@ button:focus-visible {
    Header / Nav
 ================================================== */
 header.site-header {
+  position: relative;
   max-width: 1100px;
-  margin: 0 auto;
+  margin: 0 auto 64px;
   padding: 56px 24px 28px;
-  border-bottom: 1px solid var(--ink);
-  margin-bottom: 64px;
+}
+
+header.site-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 90px;
+  height: 1px;
+  background: var(--ink);
 }
 
 .site-title {
@@ -308,6 +317,42 @@ nav.site-nav ul {
 }
 
 /* ==================================================
+   Publications
+================================================== */
+.pub-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 62ch;
+}
+
+.pub-list li {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.pub-list li:first-child {
+  border-top: 1px solid var(--rule);
+}
+
+.pub-title {
+  display: block;
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+.pub-meta {
+  margin: 0;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.pub-meta a {
+  font-style: normal;
+}
+
+/* ==================================================
    Simulation frames (lensing + BBH merger)
 ================================================== */
 .sim-frame {
@@ -386,12 +431,22 @@ nav.site-nav ul {
 }
 
 footer.site-footer {
+  position: relative;
   max-width: 1100px;
   margin: 72px auto 0;
   padding: 26px 24px 0;
-  border-top: 1px solid var(--ink);
   font-size: 14px;
   color: var(--ink-soft);
+}
+
+footer.site-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 90px;
+  height: 1px;
+  background: var(--ink);
 }
 
 /* ==================================================
