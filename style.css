@@ -204,7 +204,7 @@ p { margin: 0 0 18px; color: var(--ink-soft); }
    screen size. Headings, the hero, and simulation panels are exempt so
    they can use the full available width. */
 p, .affiliation, ul.plain-list, ul.links-list {
-  max-width: 70ch;
+  max-width: 150ch;
 }
 
 .sim-caption {
