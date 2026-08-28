@@ -94,8 +94,8 @@ header.site-header::after {
   position: absolute;
   left: 24px;
   bottom: 0;
-  width: 130px;
-  height: 1px;
+  width: 250px;
+  height: 2px;
   background: var(--ink);
 }
 
@@ -446,8 +446,8 @@ footer.site-footer::before {
   position: absolute;
   left: 24px;
   top: 0;
-  width: 130px;
-  height: 1px;
+  width: 250px;
+  height: 2px;
   background: var(--ink);
 }
 
