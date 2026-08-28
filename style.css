@@ -208,7 +208,9 @@ p, .affiliation, ul.plain-list, ul.links-list {
 }
 
 .sim-caption {
-  max-width: none;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .affiliation {
