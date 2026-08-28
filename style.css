@@ -316,11 +316,18 @@ nav.site-nav ul {
   background: #FAF3E8;
   margin: 8px 0 4px;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .sim-scroll {
   overflow-x: auto;
   line-height: 0;
+  max-width: 100%;
+}
+
+.sim-scroll canvas {
+  max-width: 100%;
+  display: block;
 }
 
 .sim-caption {
@@ -411,7 +418,7 @@ footer.site-footer {
    (overflow here is what forces mobile browsers to
    zoom the whole page out, causing the "90% width" look)
 ================================================== */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   header.site-header {
     padding: 40px 16px 20px;
   }

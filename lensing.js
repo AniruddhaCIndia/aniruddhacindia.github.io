@@ -242,7 +242,12 @@ function lensSketch(p) {
 
   p.setup = function () {
     const size = computeCanvasSize();
-    p.createCanvas(size.w, size.h).parent("lens-container");
+    const canvas = p.createCanvas(size.w, size.h);
+    canvas.parent("lens-container");
+    canvas.attribute(
+      "aria-label",
+      "Interactive gravitational lensing simulation. Drag inside the left panel to move the light source."
+    );
     bins = binsForWidth(size.w);
     p.pixelDensity(1);
     p.noStroke();

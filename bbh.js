@@ -2,10 +2,14 @@
 // Binary Black Hole Merger — instance-mode p5 sketch
 // Left panel: inspiral -> merger -> ringdown orbit
 // Right panel: corresponding strain waveform, drawn as it plays
+//
+// Timing note: every phase advances using real elapsed time
+// (deltaTime), not frame counts. This keeps the animation's
+// duration and the ringdown's decay rate consistent regardless
+// of the viewer's device frame rate.
 // ============================================================
 
 function bbhSketch(p) {
-  // Color palette — matches the site's cream / ink / indigo / gold theme
   const BG_COLOR = [250, 243, 232];
   const INK = [26, 23, 18];
   const GOLD = [176, 141, 87];
@@ -14,17 +18,18 @@ function bbhSketch(p) {
 
   let state = "idle"; // idle -> inspiral -> merger -> ringdown -> done
   let m1 = 30, m2 = 22, mTotal = 52;
-  let frame = 0, mergerFrame = 0, ringFrame = 0;
+  let inspiralElapsed = 0, mergerElapsed = 0, ringElapsed = 0, globalElapsed = 0;
   let orbitalPhase = 0, ringPhase = 0;
-  let inspiralFrames = 300, mergerFrames = 16, ringdownFrames = 180;
+  let inspiralDuration = 5, mergerDuration = 16 / 60, ringdownDuration = 3;
   const fStart = 0.55;
   let ampAtMerger = 1, peakAmp = 1;
   let fRing = 2, tau = 1;
   let lastX1 = 0, lastY1 = 0, lastX2 = 0, lastY2 = 0;
   let waveformPoints = [];
   let rings = [];
-  let totalDurationFrames = 1;
-  let waveScale = 60; // recomputed per run so the peak always fits the panel
+  let lastRingSpawnTime = 0;
+  let totalDuration = 1;
+  let waveScale = 60;
 
   function computeCanvasSize() {
     const el = document.getElementById("bbh-container");
@@ -48,23 +53,23 @@ function bbhSketch(p) {
     mTotal = m1 + m2;
     const mc = Math.pow(m1 * m2, 0.6) / Math.pow(mTotal, 0.2);
     const mcClamped = p.constrain(mc, 6, 45);
-    inspiralFrames = Math.round(p.map(mcClamped, 6, 45, 420, 140));
-    mergerFrames = 16;
+    inspiralDuration = p.map(mcClamped, 6, 45, 7.0, 2.33); // seconds
+    mergerDuration = 16 / 60; // seconds (~0.27s, brief visual merger burst)
 
     fRing = 130 / mTotal;
     const q = 6; // quality factor of the dominant ringdown mode
     tau = Math.min(q / (2 * Math.PI * fRing), 3.0);
-    ringdownFrames = Math.min(Math.ceil(4 * tau * 60), 260);
+    ringdownDuration = Math.min(4 * tau, 260 / 60);
 
-    totalDurationFrames = inspiralFrames + mergerFrames + ringdownFrames;
+    totalDuration = inspiralDuration + mergerDuration + ringdownDuration;
 
-    frame = 0; mergerFrame = 0; ringFrame = 0;
-    orbitalPhase = 0; ringPhase = 0;
+    inspiralElapsed = 0; mergerElapsed = 0; ringElapsed = 0; globalElapsed = 0;
+    orbitalPhase = 0; ringPhase = 0; lastRingSpawnTime = 0;
     waveformPoints = [];
     rings = [];
     ampAtMerger = Math.pow(frequencyAt(1) / fStart, 2 / 3);
     peakAmp = ampAtMerger * 1.15;
-    waveScale = (p.height * 0.42) / peakAmp; // scale so the merger peak fills ~42% of panel height
+    waveScale = (p.height * 0.42) / peakAmp;
 
     state = "inspiral";
     p.background(...BG_COLOR);
@@ -91,9 +96,9 @@ function bbhSketch(p) {
     if (waveformPoints.length < 2) return;
     const a = waveformPoints[waveformPoints.length - 2];
     const b = waveformPoints[waveformPoints.length - 1];
-    const x1 = p.map(a.t, 0, totalDurationFrames, p.width / 2, p.width);
+    const x1 = p.map(a.t, 0, totalDuration, p.width / 2, p.width);
     const y1 = p.height / 2 - a.h * waveScale;
-    const x2 = p.map(b.t, 0, totalDurationFrames, p.width / 2, p.width);
+    const x2 = p.map(b.t, 0, totalDuration, p.width / 2, p.width);
     const y2 = p.height / 2 - b.h * waveScale;
     p.stroke(WAVE_COLOR[0], WAVE_COLOR[1], WAVE_COLOR[2], 220);
     p.strokeWeight(1.4);
@@ -101,17 +106,25 @@ function bbhSketch(p) {
     p.noStroke();
   }
 
-  p.setup = function () {
-    const size = computeCanvasSize();
-    p.createCanvas(size.w, size.h).parent("bbh-container");
-    p.pixelDensity(1);
-    p.noStroke();
-
+  function drawIdleScene() {
     p.background(...BG_COLOR);
     drawDivider();
     const { cx, cy } = panelCenter();
     drawBlackHole(cx - 55, cy, 10);
     drawBlackHole(cx + 55, cy, 8);
+  }
+
+  p.setup = function () {
+    const size = computeCanvasSize();
+    const canvas = p.createCanvas(size.w, size.h);
+    canvas.parent("bbh-container");
+    canvas.attribute(
+      "aria-label",
+      "Binary black hole merger animation with corresponding gravitational wave strain plot"
+    );
+    p.pixelDensity(1);
+    p.noStroke();
+    drawIdleScene();
 
     const btn = document.getElementById("bbh-randomize-btn");
     if (btn) btn.addEventListener("click", randomizeAndPlay);
@@ -122,25 +135,20 @@ function bbhSketch(p) {
   p.windowResized = function () {
     const size = computeCanvasSize();
     p.resizeCanvas(size.w, size.h);
-    if (state === "idle") {
-      p.background(...BG_COLOR);
-      drawDivider();
-      const { cx, cy } = panelCenter();
-      drawBlackHole(cx - 55, cy, 10);
-      drawBlackHole(cx + 55, cy, 8);
-    }
+    if (state === "idle") drawIdleScene();
   };
 
   p.draw = function () {
     if (state === "idle" || state === "done") return;
 
     const dt = Math.min(p.deltaTime / 1000, 1 / 30);
+    globalElapsed += dt;
     const { cx, cy } = panelCenter();
     const rStart = Math.min(p.width / 4, p.height) * 0.36;
 
     if (state === "inspiral") {
-      frame++;
-      const s = Math.min(frame / inspiralFrames, 1);
+      inspiralElapsed += dt;
+      const s = Math.min(inspiralElapsed / inspiralDuration, 1);
       const f = frequencyAt(s);
       orbitalPhase += 2 * Math.PI * f * dt;
       const amp = Math.pow(f / fStart, 2 / 3);
@@ -164,15 +172,15 @@ function bbhSketch(p) {
       drawBlackHole(x2, y2, rad2);
 
       const h = amp * Math.sin(2 * orbitalPhase);
-      plotWaveformSample(frame, h);
+      plotWaveformSample(globalElapsed, h);
 
       if (s >= 1) {
         state = "merger";
-        mergerFrame = 0;
+        mergerElapsed = 0;
       }
     } else if (state === "merger") {
-      mergerFrame++;
-      const tm = mergerFrame / mergerFrames;
+      mergerElapsed += dt;
+      const tm = Math.min(mergerElapsed / mergerDuration, 1);
 
       p.noStroke();
       p.fill(...BG_COLOR, 60);
@@ -194,28 +202,27 @@ function bbhSketch(p) {
       p.fill(GOLD[0], GOLD[1], GOLD[2], flashAlpha);
       p.circle(cx, cy, mergedRad * 2 + tm * 70);
 
-      // Merger frequency should approach fRing/2 here, not fRing directly —
-      // this "orbital" phase accumulator gets doubled below for the GW signal
-      // (sin(2*orbitalPhase)), matching the same convention used in inspiral.
-      // Interpolating toward fRing itself would make the GW frequency here
-      // reach 2*fRing, creating a frequency mismatch right at the ringdown
-      // handoff.
+      // Merger frequency targets fRing/2 here, not fRing directly — this
+      // "orbital" phase accumulator gets doubled below for the GW signal
+      // (sin(2*orbitalPhase)), matching the convention used in inspiral.
+      // Interpolating toward fRing itself would make the GW frequency
+      // reach 2*fRing here, mismatching the ringdown's actual fRing.
       orbitalPhase += 2 * Math.PI * p.lerp(frequencyAt(1), fRing / 2, tm) * dt;
       const h = p.lerp(ampAtMerger, peakAmp, tm) * Math.sin(2 * orbitalPhase);
-      plotWaveformSample(inspiralFrames + mergerFrame, h);
+      plotWaveformSample(globalElapsed, h);
 
-      if (mergerFrame >= mergerFrames) {
+      if (mergerElapsed >= mergerDuration) {
         state = "ringdown";
-        ringFrame = 0;
+        ringElapsed = 0;
+        lastRingSpawnTime = 0;
         // Carry the GW phase over continuously instead of resetting to 0 —
         // physically the phase doesn't jump at merger, only the frequency
         // and amplitude envelope change character.
         ringPhase = (2 * orbitalPhase) % (2 * Math.PI);
       }
     } else if (state === "ringdown") {
-      ringFrame++;
-      const tRing = ringFrame / 60;
-      const envelope = peakAmp * Math.exp(-tRing / tau);
+      ringElapsed += dt;
+      const envelope = peakAmp * Math.exp(-ringElapsed / tau);
       ringPhase += 2 * Math.PI * fRing * dt;
       const h = envelope * Math.sin(ringPhase);
 
@@ -227,14 +234,17 @@ function bbhSketch(p) {
       const wobble = 1 + 0.15 * (envelope / peakAmp);
       drawBlackHole(cx, cy, mergedRad * wobble);
 
-      // spawn an expanding, fading ring roughly once per ringdown cycle
-      if (ringFrame % Math.max(Math.round(60 / fRing), 4) === 0 && rings.length < 4) {
+      // spawn an expanding, fading ring roughly once per ringdown cycle,
+      // timed by real elapsed seconds rather than frame count
+      if (ringElapsed - lastRingSpawnTime >= 1 / fRing && rings.length < 4) {
         rings.push({ age: 0 });
+        lastRingSpawnTime = ringElapsed;
       }
-      rings.forEach((ring) => (ring.age += 1));
-      rings = rings.filter((ring) => ring.age < 70);
+      const ringLifetime = 1.15; // seconds
+      rings.forEach((ring) => (ring.age += dt));
+      rings = rings.filter((ring) => ring.age < ringLifetime);
       rings.forEach((ring) => {
-        const t = ring.age / 70;
+        const t = ring.age / ringLifetime;
         p.noFill();
         p.stroke(GOLD[0], GOLD[1], GOLD[2], 120 * (1 - t));
         p.strokeWeight(1.2);
@@ -242,9 +252,9 @@ function bbhSketch(p) {
         p.noStroke();
       });
 
-      plotWaveformSample(inspiralFrames + mergerFrames + ringFrame, h);
+      plotWaveformSample(globalElapsed, h);
 
-      if (ringFrame >= ringdownFrames || envelope < peakAmp * 0.01) {
+      if (ringElapsed >= ringdownDuration || envelope < peakAmp * 0.01) {
         state = "done";
         p.noLoop();
       }
